@@ -30,7 +30,7 @@ steps:
     command: 'init'
     backendType: 'azurerm'
     workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
-    backendServiceArm: '$(subscription)'
+    #backendServiceArm: '$(subscription)'
     backendAzureRmResourceGroupName: '$(resourceGroup)'
     backendAzureRmStorageAccountName: '$(storageAccount)'
     backendAzureRmContainerName: '$(container)'
@@ -42,7 +42,7 @@ steps:
     command: 'plan'
     backendType: 'azurerm'
     workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
-    environmentServiceName: '$(subscription)'
+    #environmentServiceName: '$(subscription)'
     commandOptions: '-out=tfplan'
 
 - task: PowerShell@2
@@ -73,5 +73,5 @@ steps:
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
     commandOptions: 'tfplan'
-    environmentServiceName: '$(subscription)'
+    #environmentServiceName: '$(subscription)'
 
