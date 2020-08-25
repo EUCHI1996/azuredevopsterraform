@@ -64,3 +64,13 @@ steps:
       {
         Write-Host "There is no change detected in Terraform tfplan file"
       }
+
+- task: TerraformCLI@0
+  displayName: terraform apply tfplan
+  condition: eq(variables.anyTfChanges, true)
+  inputs:
+    backendType: 'azurerm'
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
+    commandOptions: 'tfplan'
+    environmentServiceName: '$(subscription)'
