@@ -9,11 +9,58 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  subscription: Pay-As-You-Go(8c66d8ea-389d-4f1c-8c71-a9bff7faf8dd)
+  resourceGroup: resourcegroup-tfstate
+  storageAccount: terraformtfstateskip
+  container: tfstate
+  tfstateFile: terraform.tfstate
+  anyTfChanges: false
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+
+steps:
+- task: TerraformInstaller@0
+  displayName: install Terraform v0.12.28
+  inputs:
+    terraformVersion: '0.12.26'
+
+- task: TerraformCLI@0
+  displayName: terraform init
+  inputs:
+    command: 'init'
+    backendType: 'azurerm'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
+    backendServiceArm: '$(subscription)'
+    backendAzureRmResourceGroupName: '$(resourceGroup)'
+    backendAzureRmStorageAccountName: '$(storageAccount)'
+    backendAzureRmContainerName: '$(container)'
+    backendAzureRmKey: '$(tfstateFile)'
+
+- task: TerraformCLI@0
+  displayName: terraform plan -out=tfplan
+  inputs:
+    command: 'plan'
+    backendType: 'azurerm'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
+    environmentServiceName: '$(subscription)'
+    commandOptions: '-out=tfplan'
+
+- task: PowerShell@2
+  displayName: detect any terraform change
+  inputs:
+    workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
+    targetType: 'inline'
+    script: |
+      # Write-Host "LASTEXITCODE : $LASTEXITCODE"
+      $plan = $(terraform show -json tfplan | ConvertFrom-Json)
+      $actions = $plan.resource_changes.change.actions
+      Write-Host "Terraform actions : $actions"
+      if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+      {
+        Write-Host "Terraform will perform the following actions : $actions"
+        Write-Host "##vso[task.setvariable variable=anyTfChanges;]true"
+      }
+      else
+      {
+        Write-Host "There is no change detected in Terraform tfplan file"
+      }
