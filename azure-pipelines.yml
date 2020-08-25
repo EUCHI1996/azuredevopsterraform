@@ -30,7 +30,7 @@ steps:
     command: 'init'
     backendType: 'azurerm'
     workingDirectory: '$(System.DefaultWorkingDirectory)/skip-step'
-    #backendServiceArm: '$(subscription)'
+    backendServiceArm: '$(subscription)'
     backendAzureRmResourceGroupName: '$(resourceGroup)'
     backendAzureRmStorageAccountName: '$(storageAccount)'
     backendAzureRmContainerName: '$(container)'
